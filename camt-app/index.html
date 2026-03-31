@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CAMT.053 XML Payment File Editor - Generate bank-to-customer statement XML files for testing" />
+  <title>CAMT.053 Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="app-header">
+      <div class="header-left">
+        <h1>CAMT.053 Editor</h1>
+        <span class="header-subtitle">Bank-to-Customer Statement</span>
+      </div>
+      <div class="header-controls">
+        <div class="payment-type-selector">
+          <label for="payment-type">Type:</label>
+          <select id="payment-type">
+            <option value="sepa" selected>SEPA</option>
+            <option value="ach">ACH</option>
+            <option value="wire">Wire</option>
+            <option value="cheques">Cheques</option>
+          </select>
+        </div>
+        <button id="btn-clear" class="btn btn-ghost" title="Clear all fields">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          Clear
+        </button>
+        <button id="btn-sample" class="btn btn-ghost" title="Load sample data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Sample
+        </button>
+        <button id="btn-preview" class="btn btn-ghost" title="Toggle XML preview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Preview
+        </button>
+        <button id="btn-download" class="btn btn-primary" title="Download XML file">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download XML
+        </button>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <div id="main-layout">
+      <!-- Side navigation -->
+      <nav id="side-nav">
+        <div class="nav-header">
+          <span>Structure</span>
+          <div class="nav-header-actions">
+            <button id="btn-nav-collapse" class="btn-icon" title="Collapse navigation tree">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+            <button id="btn-nav-expand" class="btn-icon" title="Expand navigation tree">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="nav-tree"></div>
+      </nav>
+
+      <!-- Form area -->
+      <main id="form-area">
+        <div class="form-toolbar">
+          <span class="form-toolbar-label">Editor</span>
+          <div class="form-toolbar-actions">
+            <button id="btn-form-collapse" class="btn-icon" title="Collapse all editor sections">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+            <button id="btn-form-expand" class="btn-icon" title="Expand all editor sections">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="form-container"></div>
+      </main>
+
+      <!-- XML Preview panel -->
+      <aside id="xml-preview" class="hidden">
+        <div class="preview-header">
+          <span>XML Preview</span>
+          <button id="btn-copy-xml" class="btn-icon" title="Copy to clipboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+        <pre id="xml-output"><code></code></pre>
+      </aside>
+    </div>
+  </div>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
