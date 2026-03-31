@@ -1,5 +1,6 @@
 // CAMT.053 Editor - Main Application
 import './styles.css';
+import { CAMT_SCHEMA } from './schema.js';
 import { initFormRenderer, setPaymentType, getFormData, setFormData, clearFormData } from './form-renderer.js';
 import { initNav, updateNav, updateNavIndicators, collapseAllNav, expandAllNav } from './nav.js';
 import { generateXML, generateHighlightedXML, getDownloadFilename } from './xml-generator.js';
@@ -56,6 +57,22 @@ function updatePreview() {
 }
 
 function bindControls() {
+  // Options menu toggle
+  const btnOptions = document.getElementById('btn-options');
+  const optionsMenu = document.getElementById('options-menu');
+  if (btnOptions && optionsMenu) {
+    btnOptions.addEventListener('click', (e) => {
+      e.stopPropagation();
+      optionsMenu.classList.toggle('hidden');
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (!optionsMenu.contains(e.target) && e.target !== btnOptions) {
+        optionsMenu.classList.add('hidden');
+      }
+    });
+  }
+
   // Payment type selector
   document.getElementById('payment-type').addEventListener('change', (e) => {
     currentPaymentType = e.target.value;
@@ -99,6 +116,18 @@ function bindControls() {
   document.getElementById('btn-download').addEventListener('click', (e) => {
     e.preventDefault();
     const data = getFormData();
+    
+    // Apply download options
+    const optIncrementSeq = document.getElementById('opt-increment-seq')?.checked;
+    const optUpdateDates = document.getElementById('opt-update-dates')?.checked;
+    
+    if (optIncrementSeq || optUpdateDates) {
+      applyDownloadOptions(data, optIncrementSeq, optUpdateDates);
+      setFormData(data); // Re-render UI
+      saveFormData(data); // Save updated state
+      if (previewVisible) updatePreview();
+    }
+
     const xml = generateXML(data, currentPaymentType);
     const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -161,6 +190,54 @@ function showToast(message, type = '') {
   document.body.appendChild(toast);
   
   setTimeout(() => toast.remove(), 2500);
+}
+
+function applyDownloadOptions(data, incrementSeq, updateDates) {
+  if (incrementSeq) {
+    for (const key of Object.keys(data)) {
+      if (key.endsWith('.ElctrncSeqNb') || key === 'Stmt.ElctrncSeqNb') {
+        const val = parseInt(data[key], 10);
+        if (!isNaN(val)) {
+          data[key] = (val + 1).toString();
+        }
+      }
+    }
+  }
+
+  if (updateDates) {
+    const offsetMinutes = parseInt(document.getElementById('opt-date-offset')?.value || '0', 10);
+    const now = new Date(Date.now() + offsetMinutes * 60000);
+    const dtString = now.toISOString().slice(0, 19);
+    const dString = dtString.slice(0, 10);
+
+    const datePaths = new Set();
+    const dateTimePaths = new Set();
+    
+    function collectPaths(nodes, currentPath) {
+      for (const node of nodes) {
+        const path = currentPath ? `${currentPath}.${node.tag}` : node.tag;
+        if (node.type === 'DateTime') dateTimePaths.add(path);
+        if (node.type === 'Date') datePaths.add(path);
+        if (node.children) collectPaths(node.children, path);
+      }
+    }
+    collectPaths(CAMT_SCHEMA, '');
+
+    for (const key of Object.keys(data)) {
+      if (!data[key]) continue; // Skip empty fields
+
+      if (dateTimePaths.has(key)) {
+        data[key] = dtString;
+      } else if (datePaths.has(key)) {
+        data[key] = dString;
+      } else if (key.endsWith('.Dt') || key.endsWith('.FrDt') || key.endsWith('.ToDt')) {
+        // Fallback checks
+        data[key] = dString;
+      } else if (key.endsWith('.DtTm') || key.endsWith('.CreDtTm')) {
+        data[key] = dtString;
+      }
+    }
+  }
 }
 
 // Boot
