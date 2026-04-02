@@ -63,6 +63,10 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           Sample
         </button>
+        <button id="btn-about" class="btn btn-ghost" title="About & Disclaimer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          About
+        </button>
         <button id="btn-preview" class="btn btn-ghost" title="Toggle XML preview">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           Preview
@@ -120,6 +124,24 @@
       </aside>
     </div>
   </div>
+
+  <!-- Disclaimer Modal -->
+  <div id="about-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        About CAMT.053 Editor
+      </div>
+      <div class="modal-body">
+        <p><strong>Data Privacy:</strong> This application is a client-side tool intended for testing purposes only. All processing occurs locally in your browser; no data is transmitted to, processed, or stored on any server.</p>
+        <p><strong>Liability:</strong> The tool is provided "as is", without warranty of any kind. The author shall not be held liable for any damages, financial losses, or data corruption arising from the use of this application.</p>
+        <p><strong>Usage Warning:</strong> Do not use sensitive, real-world production banking data. This tool is designed for synthetic/test data environments only. Use at your own risk.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-close" class="btn btn-primary">I Understand</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/src/app.js"></script>
 </body>
 </html>

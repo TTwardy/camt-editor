@@ -87,18 +87,23 @@ function renderNavNode(container, node, path, depth) {
     <span class="nav-dot" data-path="${path}"></span>
   `;
   
-  // Click to scroll to section
+  // Click to scroll to section or expand nav
   item.addEventListener('click', (e) => {
     e.stopPropagation();
     
-    // Toggle children in nav
-    const childContainer = item.nextElementSibling;
-    if (childContainer && childContainer.classList.contains('nav-children')) {
-      childContainer.classList.toggle('expanded');
-      const arrow = item.querySelector('.nav-arrow');
-      if (arrow && !arrow.classList.contains('no-children')) {
-        arrow.classList.toggle('expanded');
+    const isArrowClick = !!e.target.closest('.nav-arrow');
+    
+    if (isArrowClick) {
+      // Toggle children in nav
+      const childContainer = item.nextElementSibling;
+      if (childContainer && childContainer.classList.contains('nav-children')) {
+        childContainer.classList.toggle('expanded');
+        const arrow = item.querySelector('.nav-arrow');
+        if (arrow && !arrow.classList.contains('no-children')) {
+          arrow.classList.toggle('expanded');
+        }
       }
+      return; // Stop here, do not navigate down
     }
     
     // Scroll to section in form

@@ -178,6 +178,26 @@ function bindControls() {
   document.getElementById('btn-form-expand').addEventListener('click', () => {
     document.querySelectorAll('.section-card').forEach(el => el.classList.add('expanded'));
   });
+
+  // Modal logic
+  const modal = document.getElementById('about-modal');
+  const btnCloseModal = document.getElementById('btn-modal-close');
+  const btnAbout = document.getElementById('btn-about');
+
+  if (modal && btnCloseModal && btnAbout) {
+    if (!localStorage.getItem('disclaimerAccepted')) {
+      modal.classList.remove('hidden');
+    }
+
+    btnCloseModal.addEventListener('click', () => {
+      localStorage.setItem('disclaimerAccepted', 'true');
+      modal.classList.add('hidden');
+    });
+
+    btnAbout.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+  }
 }
 
 function showToast(message, type = '') {
