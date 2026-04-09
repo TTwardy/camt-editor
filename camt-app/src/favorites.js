@@ -2,6 +2,7 @@
 // Renders a compact bar above the editor with live-synced inputs.
 
 import { saveFavorites, loadFavorites } from './storage.js';
+import { CAMT_SCHEMA } from './schema.js';
 
 let favorites = loadFavorites();        // Set<path>
 let formData = {};
@@ -80,7 +81,25 @@ function render() {
   const grid = document.createElement('div');
   grid.className = 'fav-list';
 
-  for (const path of favorites) {
+  // Build an ordering map from CAMT_SCHEMA to match editor layout
+  const orderMap = new Map();
+  let orderIndex = 0;
+  function walkSchema(nodes, currentPath) {
+    for (const node of nodes) {
+      const path = currentPath ? `${currentPath}.${node.tag}` : node.tag;
+      orderMap.set(path, orderIndex++);
+      if (node.children) walkSchema(node.children, path);
+    }
+  }
+  walkSchema(CAMT_SCHEMA, '');
+
+  const sortedFavorites = Array.from(favorites).sort((a, b) => {
+    const idxA = orderMap.get(a) ?? 999999;
+    const idxB = orderMap.get(b) ?? 999999;
+    return idxA - idxB;
+  });
+
+  for (const path of sortedFavorites) {
     const card = buildFavCard(path);
     grid.appendChild(card);
   }

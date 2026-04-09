@@ -4,7 +4,7 @@
 export function getSampleData() {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
-  const dateTimeStr = now.toISOString().slice(0, 19);
+  const dateTimeStr = now.toISOString().slice(0, 19) + 'Z';
   
   return {
     // Group Header

@@ -280,7 +280,7 @@ function applyDownloadOptions(data, incrementSeq, updateDates) {
   if (updateDates) {
     const offsetMinutes = parseInt(document.getElementById('opt-date-offset')?.value || '0', 10);
     const now = new Date(Date.now() + offsetMinutes * 60000);
-    const dtString = now.toISOString().slice(0, 19);
+    const dtString = now.toISOString().slice(0, 19) + 'Z';
     const dString = dtString.slice(0, 10);
 
     const datePaths = new Set();
