@@ -2,6 +2,10 @@
 // Handles collapsible sections, XOR choices, and payment type filtering
 
 import { CAMT_SCHEMA } from './schema.js';
+import { isFavorite, toggleFavorite } from './favorites.js';
+
+const STAR_FILLED = `<svg class="star-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+const STAR_EMPTY  = `<svg class="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 
 let currentPaymentType = 'sepa';
 let formData = {};
@@ -210,7 +214,22 @@ function renderFieldRow(node, path) {
       ${rulesHtml}
     </div>
   `;
-  
+
+  // Star / favorite button
+  const starBtn = document.createElement('button');
+  starBtn.className = `star-btn${isFavorite(path) ? ' active' : ''}`;
+  starBtn.dataset.path = path;
+  starBtn.title = isFavorite(path) ? 'Unpin field' : 'Pin to favorites';
+  starBtn.innerHTML = isFavorite(path) ? STAR_FILLED : STAR_EMPTY;
+  starBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const nowFav = toggleFavorite(path, formData);
+    starBtn.classList.toggle('active', nowFav);
+    starBtn.innerHTML = nowFav ? STAR_FILLED : STAR_EMPTY;
+    starBtn.title = nowFav ? 'Unpin field' : 'Pin to favorites';
+  });
+  labelArea.querySelector('.field-label').appendChild(starBtn);
+
   // Input area
   const inputArea = document.createElement('div');
   inputArea.className = 'field-input-area';
@@ -240,8 +259,16 @@ function renderFieldRow(node, path) {
  * Create an input element
  */
 function createInput(node, path, placeholder) {
-  const input = document.createElement('input');
-  input.type = getInputType(node.type);
+  const isMulti = node.mult && (!node.mult.endsWith('1') && node.mult !== '');
+  const input = isMulti ? document.createElement('textarea') : document.createElement('input');
+  
+  if (!isMulti) {
+    input.type = getInputType(node.type);
+  } else {
+    input.rows = 2;
+    placeholder = (placeholder ? placeholder + ' ' : '') + '(Separate values by new line)';
+  }
+  
   input.className = 'field-input';
   input.placeholder = placeholder || '';
   input.dataset.path = path;
@@ -254,7 +281,9 @@ function createInput(node, path, placeholder) {
   
   // Change handler
   input.addEventListener('input', (e) => {
-    const val = e.target.value.trim();
+    // For textareas, keep newlines. For single inputs, trim aggressively.
+    const rawVal = e.target.value;
+    const val = isMulti ? rawVal.trim() : rawVal.trim();
     if (val) {
       formData[path] = val;
     } else {

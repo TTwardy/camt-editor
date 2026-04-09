@@ -1,11 +1,13 @@
 // CAMT.053 Editor - Main Application
 import './styles.css';
 import { CAMT_SCHEMA } from './schema.js';
+import { initFavorites, updateFavoritesData } from './favorites.js';
 import { initFormRenderer, setPaymentType, getFormData, setFormData, clearFormData } from './form-renderer.js';
 import { initNav, updateNav, updateNavIndicators, collapseAllNav, expandAllNav } from './nav.js';
 import { generateXML, generateHighlightedXML, getDownloadFilename } from './xml-generator.js';
 import { saveFormData, loadFormData, clearFormData as clearStorage, savePaymentType, loadPaymentType } from './storage.js';
 import { getSampleData } from './sample-data.js';
+import { parseXMLToFormData } from './xml-parser.js';
 
 let currentPaymentType = 'sepa';
 let previewVisible = false;
@@ -26,6 +28,10 @@ function init() {
   const formContainer = document.getElementById('form-container');
   initFormRenderer(formContainer, currentPaymentType, initialData, onFormChange);
   
+  // Initialize favorites
+  initFavorites(onFormChange);
+  updateFavoritesData(initialData);
+  
   // Initialize navigation
   initNav(currentPaymentType, initialData);
   
@@ -39,6 +45,7 @@ function init() {
 function onFormChange(data) {
   saveFormData(data);
   updateNavIndicators(data);
+  updateFavoritesData(data);
   if (previewVisible) {
     updatePreview();
   }
@@ -89,6 +96,7 @@ function bindControls() {
       clearFormData();
       clearStorage();
       updateNav(currentPaymentType, {});
+      updateFavoritesData({});
       if (previewVisible) updatePreview();
       showToast('Form data cleared');
     }
@@ -100,9 +108,53 @@ function bindControls() {
     setFormData(sample);
     saveFormData(sample);
     updateNav(currentPaymentType, sample);
+    updateFavoritesData(sample);
     if (previewVisible) updatePreview();
     showToast('Sample data loaded');
   });
+
+  // Upload button
+  const fileUploadBtn = document.getElementById('btn-upload');
+  const fileUploadInput = document.getElementById('file-upload');
+  
+  if (fileUploadBtn && fileUploadInput) {
+    fileUploadBtn.addEventListener('click', () => {
+      fileUploadInput.click();
+    });
+
+    fileUploadInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const xmlString = event.target.result;
+          const parsedData = parseXMLToFormData(xmlString, CAMT_SCHEMA);
+          
+          if (Object.keys(parsedData).length === 0) {
+            showToast('No valid CAMT fields found in file', 'error');
+            return;
+          }
+
+          setFormData(parsedData);
+          saveFormData(parsedData);
+          updateNav(currentPaymentType, parsedData);
+          updateFavoritesData(parsedData);
+          if (previewVisible) updatePreview();
+          
+          showToast('XML file imported successfully', 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to parse XML file', 'error');
+        }
+      };
+      reader.readAsText(file);
+      
+      // Reset input so the same file could be uploaded again
+      e.target.value = '';
+    });
+  }
   
   // Preview toggle
   document.getElementById('btn-preview').addEventListener('click', () => {
@@ -125,6 +177,7 @@ function bindControls() {
       applyDownloadOptions(data, optIncrementSeq, optUpdateDates);
       setFormData(data); // Re-render UI
       saveFormData(data); // Save updated state
+      updateFavoritesData(data);
       if (previewVisible) updatePreview();
     }
 

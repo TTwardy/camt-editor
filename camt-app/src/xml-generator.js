@@ -56,6 +56,13 @@ function renderNode(node, path, formData, paymentType, indent) {
       return `${sp}<${tag} Ccy="${escapeXml(ccyValue)}">${escapeXml(String(value))}</${tag}>`;
     }
     
+    // Check if it's a multiline value for a repeatable field
+    const isMulti = node.mult && (!node.mult.endsWith('1') && node.mult !== '');
+    if (isMulti && String(value).includes('\n')) {
+      const lines = String(value).split('\n').filter(l => l.trim() !== '');
+      return lines.map(line => `${sp}<${tag}>${escapeXml(line)}</${tag}>`).join('\n');
+    }
+    
     return `${sp}<${tag}>${escapeXml(String(value))}</${tag}>`;
   }
   
