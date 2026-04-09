@@ -548,8 +548,8 @@ body {
 }
 
 .field-label-area {
-  width: 220px;
-  min-width: 220px;
+  width: 300px;
+  min-width: 300px;
   flex-shrink: 0;
   padding-top: 5px;
 }
@@ -560,6 +560,7 @@ body {
   color: var(--text-label);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--sp-1);
 }
 
