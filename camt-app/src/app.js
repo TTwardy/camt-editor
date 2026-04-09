@@ -269,9 +269,16 @@ function applyDownloadOptions(data, incrementSeq, updateDates) {
   if (incrementSeq) {
     for (const key of Object.keys(data)) {
       if (key.endsWith('.ElctrncSeqNb') || key === 'Stmt.ElctrncSeqNb') {
-        const val = parseInt(data[key], 10);
-        if (!isNaN(val)) {
-          data[key] = (val + 1).toString();
+        const originalStr = data[key];
+        if (originalStr) {
+          const numMatch = originalStr.match(/(\d+)$/);
+          if (numMatch) {
+            const numStr = numMatch[1];
+            const prefix = originalStr.slice(0, numMatch.index);
+            const val = parseInt(numStr, 10);
+            const newNumStr = (val + 1).toString().padStart(numStr.length, '0');
+            data[key] = prefix + newNumStr;
+          }
         }
       }
     }

@@ -160,7 +160,7 @@ function buildFavCard(path) {
     if (mainInput && mainInput.value !== e.target.value) {
       mainInput.value = e.target.value;
     }
-    if (onChangeCallback) onChangeCallback({ ...formData });
+    if (onChangeCallback) onChangeCallback(formData);
   });
 
   return card;
